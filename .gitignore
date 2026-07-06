@@ -1,0 +1,79 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+.env
+.env.supabase.test
+.env*.test
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# prisma
+/prisma/migrations
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Assets (optionnel - décommentez si vous ne voulez pas versionner les assets)
+# /assets/img/*
+# /assets/video/*
+# /assets/other/*
+# !/assets/README.md
+
+# Uploads utilisateurs
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+.env.local
+.env
+.env.local
+.env
+
+# Agent metadata
+.augment/
+_bmad/
+_bmad-output/
+full_tsc_output.txt
+
+# Documents & temporary files
+*.docx
+*.docx.metadata.json
+scratch/
+reconstructed_page.tsx
+
+# Heavy screenshots to be optimized later
+/public/project-*.png
+

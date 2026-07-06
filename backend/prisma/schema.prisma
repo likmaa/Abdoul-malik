@@ -1,0 +1,305 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // directUrl est optionnel - si DATABASE_URL_UNPOOLED n'existe pas, Prisma utilisera DATABASE_URL
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model addresses {
+  id           String   @id
+  userId       String
+  type         String
+  firstName    String
+  lastName     String
+  company      String?
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  postalCode   String
+  country      String
+  phone        String?
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model content_history {
+  id          String   @id
+  contentType String
+  contentId   String
+  action      String
+  changes     Json?
+  userId      String?
+  userName    String?
+  createdAt   DateTime @default(now())
+
+  @@index([contentType, contentId])
+  @@index([createdAt])
+}
+
+model hero_images {
+  id           String   @id
+  type         String
+  name         String
+  mediaType    String   @default("image")
+  imageUrl     String?
+  videoUrl     String?
+  thumbnailUrl String?
+  price        Int?
+  productId    String?
+  available    Boolean  @default(true)
+  order        Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([order])
+  @@index([type])
+}
+
+model immersive_images {
+  id           String   @id
+  name         String
+  mediaType    String   @default("image")
+  imageUrl     String?
+  videoUrl     String?
+  thumbnailUrl String?
+  productId    String?
+  order        Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([order])
+}
+
+model order_items {
+  id        String   @id
+  orderId   String
+  productId String
+  quantity  Int
+  priceHT   Int
+  vatRate   Float
+  createdAt DateTime @default(now())
+  orders    orders   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  products  products @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model orders {
+  id              String        @id
+  userId          String
+  status          OrderStatus   @default(PENDING)
+  totalHT         Int
+  totalTTC        Int
+  vatAmount       Int
+  shippingCost    Int
+  shippingAddress Json
+  billingAddress  Json?
+  paymentIntentId String?
+  paymentMethod   String?
+  paymentProofUrl String?
+  trackingNumber  String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  order_items     order_items[]
+  users           users         @relation(fields: [userId], references: [id])
+
+  @@index([paymentIntentId])
+  @@index([status])
+  @@index([userId])
+}
+
+model partners {
+  id        String   @id
+  name      String
+  logoPath  String
+  cdnUrl    String?
+  width     Int?
+  height    Int?
+  alt       String
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([order])
+}
+
+model categories {
+  id        String       @id
+  name      Json         // { fr: "...", en: "..." }
+  slug      String       @unique
+  parentId  String?
+  parent    categories?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children  categories[] @relation("CategoryHierarchy")
+  products  products[]
+  isActive  Boolean      @default(true)
+  order     Int          @default(0)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([parentId])
+  @@index([slug])
+}
+
+model products {
+  id             String        @id
+  sku            String        @unique
+  name           Json
+  description    Json?
+  priceHT        Int
+  defaultVATRate Float
+  weight         Float
+  dimensions     Json
+  stock          Int           @default(0)
+  brand          String
+  category       String        // Keeping for compatibility/name
+  categoryId     String?
+  categoryRel    categories?   @relation(fields: [categoryId], references: [id])
+  images         String[]
+  attributes     Json?
+  brandLink      String?
+  features       Json?         // Points forts / Highlights
+  specifications Json?         // Technical specs
+  deliveryInfo   Json?         // Information de livraison
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  order_items    order_items[]
+
+  @@index([brand])
+  @@index([category])
+  @@index([categoryId])
+  @@index([isActive])
+  @@index([sku])
+}
+
+model shipping_methods {
+  id           String   @id
+  name         String
+  carrier      String?
+  maxWeight    Float?
+  maxDimension Float?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model shipping_zones {
+  id         String   @id
+  name       String
+  countries  String[]
+  basePrice  Int
+  pricePerKg Int?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model site_settings {
+  id          String   @id @default("global")
+  newsBarText String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model tax_rates {
+  id          String   @id
+  countryCode String   @unique
+  rate        Float
+  reducedRate Float?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model testimonials {
+  id        String   @id
+  name      String
+  initial   String
+  rating    Int
+  text      Json
+  product   String
+  date      String
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([order])
+}
+
+model users {
+  id              String      @id
+  email           String      @unique
+  passwordHash    String?
+  name            String?
+  role            UserRole    @default(CUSTOMER)
+  isEmailVerified Boolean     @default(false)
+  vatNumber       String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  addresses       addresses[]
+  orders          orders[]
+
+  @@index([email])
+}
+
+enum B2BRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model b2b_requests {
+  id           String           @id
+  companyName  String
+  email        String
+  phone        String
+  vatNumber    String
+  address      String
+  city         String
+  postalCode   String
+  country      String
+  sector       String
+  annualVolume String
+  message      String?
+  status       B2BRequestStatus @default(PENDING)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([email])
+  @@index([status])
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  CUSTOMER
+  B2B_CUSTOMER
+}
